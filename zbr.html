@@ -1,0 +1,290 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+	<title>zbr.js</title>
+	<style type="text/css">
+		/*初始化样式*/
+        *{margin:0;padding:0;}
+        body{color: #f00;background-color: #D5E4FD;}
+
+        /*公用样式*/
+        ul{list-style:none;}
+
+        #slideWrap,
+        #slideWrapLeft,
+        #slideWrapTop{width:500px;height:200px;overflow:hidden;margin: 0 auto;position: relative;}
+
+        #slideWrap ul,
+        #slideWrapTop ul{width: 500px;position: absolute;}
+
+        #slideWrap ul li,
+        #slideWrapLeft ul li,
+        #slideWrapTop ul li{width: 500px;height: 200px;overflow: hidden;}
+
+        #slideWrap ul li img,
+        #slideWrapLeft ul li img,
+        #slideWrapTop ul li img{width: 500px;height: 200px;}
+
+		/*淡入淡出样式*/
+        #slideWrap ul li{position: absolute;}
+        /*水平滑动样式*/
+        #slideWrapLeft ul{width: 2500px;}
+        #slideWrapLeft ul li{float: left;}
+        /*上下滑动样式*/
+        #slideWrapLeft ul{position: absolute;}
+
+        /*切花按钮样式*/
+        .btnWrap{position: absolute;top: 175px;left: 10px;}
+        .btnWrap span{display: inline-block;*display: inline;*zoom:1;width: 25px;height: 25px;background-color: #fff;margin: 0 5px;cursor: pointer;line-height: 25px;text-align: center;border-radius: 25px;}
+        span.onBtn{background-color: #f00;color: #fff;}
+
+        /*说明样式*/
+        .intro{width: 500px;margin: 5px auto;text-align: right;color: #333;}
+        .intro span{font: bold 12px/12px simsun;color: #f00;}
+        .zbr{position: absolute;top: 20px;left: 20px;color: #666;}
+        .zbr h1{font:bold 64px/1.0 simhei;padding-bottom: 2px;text-shadow: 0 0 5px #666}
+        .zbr p{font: normal 9px/1.0 simsun;color: #666;text-indent: 0;border-top: 1px dashed #999;padding-top: 8px;}
+        
+	</style>
+</head>
+<body>
+	<div class="zbr">
+		<h1>zbr.js</h1>
+		<p>会搜Banner轮播通用类(version 1.2)</p>
+	</div>
+	<div class="intro fade">
+		淡入淡出:<span>fade</span>
+	</div>
+	<div id="slideWrap">
+		<ul style="left:0;top:0;">
+			<li><img src="img/01.jpg" alt=""></li>
+			<li><img src="img/02.jpg" alt=""></li>
+			<li><img src="img/03.jpg" alt=""></li>
+			<li><img src="img/04.jpg" alt=""></li>
+			<li><img src="img/05.jpg" alt=""></li>
+		</ul>
+	</div>
+	<div class="intro leftMove">
+		水平滑动:<span>left</span>
+	</div>
+	<div id="slideWrapLeft">
+		<ul style="left:0;top:0;">
+			<li><img src="img/01.jpg" alt=""></li>
+			<li><img src="img/02.jpg" alt=""></li>
+			<li><img src="img/03.jpg" alt=""></li>
+			<li><img src="img/04.jpg" alt=""></li>
+			<li><img src="img/05.jpg" alt=""></li>
+		</ul>
+	</div>
+	<div class="intro upMove">
+		垂直滑动:<span>up</span>
+	</div>
+	<div id="slideWrapTop">
+		<ul style="left:0;top:0;">
+			<li><img src="img/01.jpg" alt=""></li>
+			<li><img src="img/02.jpg" alt=""></li>
+			<li><img src="img/03.jpg" alt=""></li>
+			<li><img src="img/04.jpg" alt=""></li>
+			<li><img src="img/05.jpg" alt=""></li>
+		</ul>
+	</div>
+
+	<script type="text/javascript">
+		var ZmSlide = function(ido,derection)
+		{
+			(this.initialize).apply(this,arguments);
+		}
+		ZmSlide.prototype = 
+		{
+			initialize : function(ido,derection)
+			{
+				// var gThis = this;
+				this.derection = derection;
+				this.oId = typeof ido === 'string' ? document.getElementById(ido) : ido;
+				// alert(oId)
+				this.liCount = this.oId.getElementsByTagName('img').length;
+				this.creatBtn();
+				this.swicth();
+				this.timer = null;//速度
+				this.gTimer = null;//滚动间隔
+				this.iTgt = 0; //全局iTgt防止切换抖动
+				this.autoPlay();
+				this.derection == 'fade' && this.fadePatch();
+			},
+			fadePatch : function()
+			{
+				var aLi = this.oId.getElementsByTagName('li');
+				for(var i = 1; i<this.liCount; i++){
+					// aLi[i].style.opacity = 0;
+					this.setOpacity(aLi[i],0);
+				}
+			},
+			setOpacity : function(elem,op)
+			{	
+				if (elem.filters) {
+					elem.style.filter = 'alpha(opacity:' + op * 100 + ')';
+					// elem.style.zoom = 1;
+				}else{
+					elem.style.opacity = op;
+				}
+				
+			},
+			autoPlay : function()
+			{	
+				var that = this;
+				gTimer = setTimeout(function(){
+
+					that.derection == 'fade' ? that.fadeOut() : that.moveTo();//自动滚动
+					that.iTgt++;
+					if(that.iTgt == that.liCount) {
+						that.iTgt = 0;	
+					}
+					that.autoPlay(); 
+				},5000);
+				// this.oId.onmouseover = function()
+				// {
+				// 	// alert('stop scroll');
+				// 	clearTimeout(that.gTimer);
+				// };
+				// this.oId.onmouseout = function()
+				// {	
+				// 	// alert('start again')
+				// 	that.gTimer = setInterval(function(){
+				// 		that.moveTo();//自动滚动
+				// 		that.iTgt++;
+				// 		if(that.iTgt == that.liCount) {
+				// 			that.iTgt = 0;	
+				// 		} 
+				// 	},3000);
+				// }
+			},
+			creatBtn : function()
+			{
+				var oBtnWrap = document.createElement('div');
+				// alert(this.liCount)
+				for(var i = 0;i < this.liCount;i++)
+				{
+					var oBtn = document.createElement('span');
+					oBtn.innerHTML = i+1;
+					if(i == 0) { //增加第一个按钮的“当前类”
+						oBtn.className = 'onBtn';
+					}
+					oBtnWrap.appendChild(oBtn);
+				}
+				oBtnWrap.className = 'btnWrap';
+				this.oId.appendChild(oBtnWrap);
+
+			},
+			swicth : function()
+			{
+				var oSpan = this.oId.getElementsByTagName('span');
+				for (var i = 0; i < oSpan.length; i++) {
+					oSpan[i].index = i;
+					var that = this;
+					oSpan[i].onmouseover = function()
+					{
+						for (var i = 0; i < oSpan.length; i++) {
+							oSpan[i].className = '';
+						};
+						this.className = 'onBtn';
+						that.iTgt = this.index;
+						if (that.derection == 'fade') {
+							that.fadeOut();
+						}else{
+							that.moveTo();
+						}
+					}
+				};
+
+			},
+			fadeOut : function()
+			{	
+				var that = this;
+				var aLi = this.oId.getElementsByTagName('li');
+				for (var i = 0; i < this.liCount; i++) {
+					this.setOpacity(aLi[i],0);
+				};
+				
+				var op = 0;
+				var opTimer = setInterval(function(){
+					// if () {};
+					var oSpan = that.oId.getElementsByTagName('span');
+					for (var i = 0; i < oSpan.length; i++) {
+						oSpan[i].className = '';
+					};
+					oSpan[that.iTgt].className = 'onBtn';
+					op += 0.01;
+					if(op > 1)
+					{	
+						op = 1;
+						clearInterval(opTimer);
+					}
+					that.setOpacity(aLi[that.iTgt],op);
+				},10)
+
+			},
+			moveTo : function()
+			{	
+				// alert(iTgt);
+				var oUl = this.oId.getElementsByTagName('ul')[0];
+				// oUl.style.left = (iTgt * -500) + 'px';
+				// alert(oUl.offsetLeft);
+				// if (true) {};
+
+				var thatTimer = this.timer;
+				var that = this;
+				if (that.derection == 'left') {
+					thatTimer = setInterval(function(){
+						// if (true) {};
+						var nMinus = oUl.offsetLeft + that.oId.offsetWidth * that.iTgt;
+						// 滚动
+						if (nMinus != 0) {
+							// oUl.offsetLeft = oUl.offsetLeft - 10;
+							oUl.style.left = parseInt(oUl.style.left) - that.speed(nMinus) + 'px';
+						}else{
+							clearInterval(thatTimer);
+							// iTgt++;
+						}
+	
+						var oSpan = that.oId.getElementsByTagName('span');
+						for (var i = 0; i < oSpan.length; i++) {
+								oSpan[i].className = '';
+							};
+							oSpan[that.iTgt].className = 'onBtn';
+					},20)
+				}else if (that.derection == 'top') {
+					thatTimer = setInterval(function(){
+						// if (true) {};
+						var nMinus = oUl.offsetTop + that.oId.offsetHeight * that.iTgt;
+						// 滚动
+						if (nMinus != 0) {
+							// oUl.offsetLeft = oUl.offsetLeft - 10;
+							oUl.style.top = parseInt(oUl.style.top) - that.speed(nMinus) + 'px';
+						}else{
+							clearInterval(thatTimer);
+							// iTgt++;
+						}
+	
+						var oSpan = that.oId.getElementsByTagName('span');
+						for (var i = 0; i < oSpan.length; i++) {
+								oSpan[i].className = '';
+							};
+							oSpan[that.iTgt].className = 'onBtn';
+					},20)
+				};
+			},
+			speed : function(a) //动态速度
+			{
+				var dynamicSpeed = a / 10 ;
+				dynamicSpeed = dynamicSpeed > 0 ? Math.ceil(dynamicSpeed) : Math.floor(dynamicSpeed);
+				return dynamicSpeed;
+			}
+		}
+		// Trigger
+		new ZmSlide('slideWrap','fade');
+		new ZmSlide('slideWrapLeft','left');
+		new ZmSlide('slideWrapTop','top');
+	</script>
+</body>
+</html>
